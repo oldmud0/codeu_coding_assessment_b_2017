@@ -15,5 +15,5 @@ env:
 
 script:
   - rm -rf bin
-  - ./build.sh
+  - ./make.sh
   - ./travis-run.sh
