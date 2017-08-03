@@ -9,7 +9,11 @@ jdk:
 os:
   - linux
 
+env:
+  - TEST=true
+  - TEST=false
 
 script:
- - ./clean.sh
- - ./build.sh
+  - rm -rf bin
+  - ./build.sh
+  - ./travis-run.sh
