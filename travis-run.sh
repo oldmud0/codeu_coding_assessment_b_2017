@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./build.sh
+./make.sh
 
 if [ $TEST == "true" ]; then
   ./run.sh
