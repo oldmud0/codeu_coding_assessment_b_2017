@@ -227,8 +227,57 @@ final class Test {
           }
         });
     
-    tester.printResults();
+    tester.test(
+        "Very long math",
+        lines("let x=1+2+3+4+5+6+7+8-9+0;",
+              "print x;"),
+        new TestCriteria() {
+          @Override
+          public void onTestEnd(CallTable calls) throws Exception {
+            calls.assertNext("let",
+                new AddOperation(1),
+                new AddOperation(2),
+                new AddOperation(3),
+                new AddOperation(4),
+                new AddOperation(5),
+                new AddOperation(6),
+                new AddOperation(7),
+                new AddOperation(8),
+                new SubtractOperation(9),
+                new AddOperation(0));
+            calls.assertNext("print", "27.0"); // use print to verify result
+            calls.assertEnd();
+          }
+        });
     
+    tester.test(
+        "Double negatives",
+        lines("let x=5--3;",
+              "print x;"),
+        new TestCriteria() {
+          @Override
+          public void onTestEnd(CallTable calls) throws Exception {
+            calls.assertNext("let", new AddOperation(5), new SubtractOperation(-3));
+            calls.assertNext("print", "8.0"); // use print to verify result
+            calls.assertEnd();
+          }
+        });
+    
+    tester.test(
+        "Escaped quotes",
+        lines("note \"This is a \\\"test\\\"\";",
+              "print \"Does this \\\"work well?\\\"\";"),
+        new TestCriteria() {
+          @Override
+          public void onTestEnd(CallTable calls) throws Exception {
+            calls.assertNext("note", "This is a \"test\"");
+            calls.assertNext("print", "Does this \"work well?\"");
+            calls.assertEnd();
+          }
+        });
+
+    tester.printResults();
+
     System.exit(tester.getFailedTestCount());
   }
 

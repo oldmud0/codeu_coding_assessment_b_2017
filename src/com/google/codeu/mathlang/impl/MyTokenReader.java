@@ -49,7 +49,9 @@ public final class MyTokenReader implements TokenReader {
     tokenList.add(new TokenFactory<StringToken>("^\\\".+?[^\\\\]\\\"") {
       @Override
       public StringToken createToken(String object) {
-        return new StringToken(object.substring(object.indexOf('"') + 1, object.lastIndexOf('"')));
+        return new StringToken(object
+            .substring(object.indexOf('"') + 1, object.lastIndexOf('"'))
+            .replaceAll("\\\\\"", "\""));
       }
     });
     tokenList.add(new TokenFactory<NumberToken>("^\\d+") {
