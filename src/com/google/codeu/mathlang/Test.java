@@ -226,6 +226,10 @@ final class Test {
             calls.assertEnd();
           }
         });
+    
+    tester.printResults();
+    
+    System.exit(tester.getFailedTestCount());
   }
 
   private static String lines(String... lines) {

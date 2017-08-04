@@ -41,6 +41,9 @@ public final class Tester {
 
   private final TestListener listener;
 
+  int testsDone = 0;
+  int testsPassed = 0;
+
   public Tester(TestListener listener) {
     this.listener = listener;
   }
@@ -56,9 +59,20 @@ public final class Tester {
     try {
       runTest(input, criteria);
       listener.onPass();
+      testsPassed++;
     } catch (Exception ex) {
       listener.onFail(ex);
     }
+    testsDone++;
+  }
+
+  public void printResults() {
+    System.out.printf("%d out of %d tests passed (%.02f%%).", testsPassed, testsDone, testsPassed / testsDone * 100.);
+  }
+
+  /** Returns number of failed tests. */
+  public int getFailedTestCount() {
+    return testsDone - testsPassed;
   }
 
   private static void runTest(String input, TestCriteria criteria) throws Exception {
