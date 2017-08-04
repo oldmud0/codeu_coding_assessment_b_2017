@@ -36,36 +36,22 @@ import com.google.codeu.mathlang.parsing.TokenReader;
 public final class MyTokenReader implements TokenReader {
 
   private String source;
-  private final List<TokenFactory<?>> tokenList = new ArrayList<>();
+  private final List<MatchableToken<?>> tokenList = new ArrayList<>();
 
   public MyTokenReader(String source) {
     // warning, extreme lookahead sorcery, touch at your own risk
-    tokenList.add(new TokenFactory<NameToken>("^[a-zA-Z]\\w*(?=(?:[^'\"]|[\"'][^'\"]*[\"'])*$)") {
-      @Override
-      public NameToken createToken(String object) {
-        return new NameToken(object);
-      }
-    });
-    tokenList.add(new TokenFactory<StringToken>("^\\\".+?[^\\\\]\\\"") {
-      @Override
-      public StringToken createToken(String object) {
-        return new StringToken(object
-            .substring(object.indexOf('"') + 1, object.lastIndexOf('"'))
-            .replaceAll("\\\\\"", "\""));
-      }
-    });
-    tokenList.add(new TokenFactory<NumberToken>("^\\d+") {
-      @Override
-      public NumberToken createToken(String object) {
-        return new NumberToken(Double.parseDouble(object));
-      }
-    });
-    tokenList.add(new TokenFactory<SymbolToken>("^[^\\w\\s]") {
-      @Override
-      public SymbolToken createToken(String object) {
-        return new SymbolToken(object.charAt(0));
-      }
-    });
+    tokenList.add(new MatchableToken<NameToken>("^[a-zA-Z]\\w*(?=(?:[^'\"]|[\"'][^'\"]*[\"'])*$)",
+        str -> new NameToken(str)));
+    tokenList.add(new MatchableToken<StringToken>("^\\\".+?[^\\\\]\\\"",
+        str -> new StringToken(str
+            .substring(str.indexOf('"') + 1, str.lastIndexOf('"'))
+            .replaceAll("\\\\\"", "\""))
+        ));
+    tokenList.add(new MatchableToken<NumberToken>("^\\d+",
+        str -> new NumberToken(Double.parseDouble(str))));
+    tokenList.add(new MatchableToken<SymbolToken>("^[^\\w\\s]",
+        str -> new SymbolToken(str.charAt(0))));
+
     this.source = source;
   }
 
@@ -77,7 +63,7 @@ public final class MyTokenReader implements TokenReader {
   @Override
   public Token next() throws IOException {
     try {
-      for (TokenFactory<?> factory : tokenList) {
+      for (MatchableToken<?> factory : tokenList) {
         Matcher tokenMatcher = factory.getMatcher(source);
         if (tokenMatcher.find()) {
 //        System.out.printf("%s: %s%n", factory.getClass(), tokenMatcher.group());
@@ -93,19 +79,27 @@ public final class MyTokenReader implements TokenReader {
     }
   }
 
-  private static abstract class TokenFactory<T extends Token> {
+  private static class MatchableToken<T extends Token> {
     /** Holds a regex pattern that corresponds to the format of the token. */
     private Pattern pattern;
+    private TokenFactory<T> factory;
 
-    public TokenFactory(String pattern) {
+    public MatchableToken(String pattern, TokenFactory<T> factory) {
       this.pattern = Pattern.compile(pattern);
+      this.factory = factory;
     }
 
     public Matcher getMatcher(String text) {
       return pattern.matcher(text);
     }
 
-    public abstract T createToken(String object);
+    public T createToken(String object) {
+      return factory.createToken(object);
+    }
+
+    public interface TokenFactory<T> {
+      public T createToken(String object);
+    }
 
   }
 }
